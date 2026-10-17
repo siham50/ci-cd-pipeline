@@ -9,12 +9,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', credentialsId: 'gitea-credentials', url: 'http://gitea:3000/admin/ci-cd-project.git'
-            }
-        }
-
         stage('Lint') {
             steps {
                 sh '''
