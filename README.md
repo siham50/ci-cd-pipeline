@@ -37,6 +37,26 @@ A complete CI/CD pipeline that automatically lints, tests, builds, and deploys a
 
 ---
 
+## Screenshots
+
+### 1. Automated Jenkins Pipeline
+![Jenkins Pipeline](Screenshots/jenkins-pipeline.png)
+*The pipeline automatically lints, tests, builds, and deploys the Flask API.*
+
+### 2. Live Application Health Check
+![Terminal Health Check](Screenshots/curl-health.png)
+*Nginx successfully routing traffic to the newly deployed container.*
+
+### 3. Self-Hosted Git Repository
+![Gitea Repo](Screenshots/gitea-repo.png)
+*Gitea acting as the trigger source for the CI/CD pipeline.*
+
+### 4. Docker Orchestration
+![Docker Containers](Screenshots/docker-ps.png)
+*The full stack running locally (Nginx, Gitea, Jenkins, and the Flask API).*
+
+---
+
 ## Stack
 
 | Tool | Purpose |
@@ -55,20 +75,15 @@ A complete CI/CD pipeline that automatically lints, tests, builds, and deploys a
 
 ## How It Works
 
-1. Developer pushes code to **Gitea** (`main` branch).
-2. Gitea fires a **webhook** to Jenkins.
-3. Jenkins reads the **Jenkinsfile** and runs the pipeline:
-   - **Lint** → `flake8` checks code style
-   - **Test** → `pytest` runs unit tests for all routes
-   - **Build Image** → builds a Docker image tagged with the build number
-   - **Deploy** (main only) → stops the old container, runs the new one
-   - **Health Check** (main only) → `curl /health` verifies the new container is live
-4. If any stage fails, the pipeline stops — **broken code never reaches production**.
-5. Nginx proxies user traffic on port 80 to the deployed Flask container.
-
-**Branch-based deployment:**
-- Push to `dev` → lint + test only (no deploy)
-- Merge to `main` → full pipeline including deploy + health check
+1. Developer pushes code to the `main` branch on **Gitea** (self-hosted Git).
+2. **Jenkins** automatically detects the change (via Poll SCM every 60 seconds) and starts the pipeline.
+3. Jenkins reads the **Jenkinsfile** and executes the following stages:
+   - **Lint**: Runs `flake8` to ensure code quality and style.
+   - **Test**: Runs `pytest` to execute 11 unit tests. If any fail, the pipeline stops.
+   - **Build Image**: Builds a new Docker image tagged with the Jenkins `BUILD_NUMBER`.
+   - **Deploy**: Stops the old `flask-api-prod` container and spins up the new one.
+   - **Health Check**: Hits the `/health` endpoint via `curl` to verify the new container is live and serving traffic.
+4. **Nginx** acts as a reverse proxy, routing external traffic from port 80 to the Flask container.
 
 ---
 
@@ -135,6 +150,14 @@ docker compose ps
 ```
 ---
 
+### Important Windows/Docker Desktop Fix
+If Jenkins fails during the Deploy stage with a "permission denied" error for `docker.sock`, run this command to grant Jenkins access to the Docker daemon:
+
+```bash
+docker compose exec -u root jenkins chmod 666 /var/run/docker.sock
+```
+---
+
 ## First-time service setup
 
 ### Gitea → http://localhost:3000
@@ -191,6 +214,16 @@ docker compose exec jenkins docker ps
 - Why Nginx resolves upstreams at startup (and how to fix it with resolver)
 - How Jenkins decides pass/fail based on shell exit codes
 - Why Docker CLI must be added to a Jenkins image, mounting the socket isn't enough
+
+---
+
+## Challenges & Learnings
+
+Building this locally on Windows with Docker Desktop presented several real-world DevOps challenges:
+- **Docker Socket Permissions**: Jenkins failed to execute Docker commands because it lacked permissions to `/var/run/docker.sock`. Solved by updating the Jenkins `Dockerfile` and applying the correct group permissions.
+- **Docker Networking & Egress Policies**: Windows Docker Desktop's network isolation blocked the Gitea-to-Jenkins webhook. Implemented **Poll SCM** as a reliable fallback for local development, simulating production webhook behavior.
+- **Python Environment Isolation**: Resolved `ModuleNotFoundError` by explicitly using `python3 -m pip` and `python3 -m pytest` inside the Jenkins pipeline to avoid global vs. local package conflicts.
+- **Nginx Upstream Resolution**: Nginx crashed on first boot because the Flask container didn't exist yet. Solved by using Docker's internal DNS resolver (`resolver 127.0.0.11`) to resolve the upstream at request-time rather than startup.
 
 ---
 
