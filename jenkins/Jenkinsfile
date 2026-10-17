@@ -23,7 +23,11 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'cd app && pytest tests/ -v --tb=short'
+                sh '''
+                    cd app
+                    pip install -r requirements.txt --break-system-packages
+                    pytest tests/ -v --tb=short
+                '''
             }
         }
 
