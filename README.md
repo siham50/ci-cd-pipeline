@@ -41,25 +41,25 @@ A complete CI/CD pipeline that automatically lints, tests, builds, and deploys a
 
 ### 1. Automated Jenkins Pipeline
 
-![Jenkins Pipeline](screenshots/jenkins-pipeline.png)
+![Jenkins Pipeline](Screenshots/jenkins-pipeline.png)
 
 *The pipeline automatically lints, tests, builds, and deploys the Flask API.*
 
 ### 2. Live Application Health Check
 
-![Terminal Health Check](screenshots/curl-health.png)
+![Terminal Health Check](Screenshots/curl-health.png)
 
 *Nginx successfully routing traffic to the newly deployed Flask container.*
 
 ### 3. Self-Hosted Git Repository
 
-![Gitea Repo](screenshots/gitea-repo.png)
+![Gitea Repo](Screenshots/gitea-repo.png)
 
 *Gitea acting as the trigger source for the CI/CD pipeline.*
 
 ### 4. Docker Orchestration
 
-![Docker Containers](screenshots/docker-ps.png)
+![Docker Containers](Screenshots/docker-ps.png)
 
 *The full stack running locally (Nginx, Gitea, Jenkins, and the Flask API).*
 
