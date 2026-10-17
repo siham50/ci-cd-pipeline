@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "flask-api"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        CONTAINER_NAME = "flask-api-prod"
+        FLASK_SECRET = credentials('FLASK_SECRET_KEY')
+    }
+
+    stages {
+        stage('Lint') {
+            steps {
+                sh '''
+                    pip install -r app/requirements.txt --break-system-packages
+                    python3 -m flake8 app/ --max-line-length=100
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh '''
+                    cd app
+                    python3 -m pytest tests/ -v --tb=short
+                '''
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ./app && docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker stop ${CONTAINER_NAME} || true; docker rm ${CONTAINER_NAME} || true; docker run -d --name ${CONTAINER_NAME} --network ci-cd-pipeline_app-network -e FLASK_SECRET_KEY=${FLASK_SECRET} -p 5000:5000 ${IMAGE_NAME}:latest'
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sh 'sleep 5; curl -f http://flask-api-prod:5000/health || exit 1; echo "Deployment successful!"'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline passed — build ${BUILD_NUMBER} deployed"
+        }
+        failure {
+            echo "Pipeline failed"
+            sh 'docker stop ${CONTAINER_NAME} || true'
+        }
+        always {
+            sh 'docker image prune -f'
+        }
+    }
+}
