@@ -29,7 +29,10 @@ services:
       start_period: 10s
 
   jenkins:
-    image: jenkins/jenkins:lts
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    image: jenkins-custom:latest
     restart: unless-stopped
     ports:
       - "8090:8080"
@@ -40,6 +43,7 @@ services:
     networks:
       - cicd-network
       - app-network
+
 
 networks:
   app-network:

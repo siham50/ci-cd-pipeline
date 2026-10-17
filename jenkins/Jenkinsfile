@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', credentialsId: 'gitea-credentials', url: 'http://gitea:3000/youruser/cicd-project.git'
+                git branch: 'main', credentialsId: 'gitea-credentials', url: 'http://gitea:3000/admin/ci-cd-project.git'
             }
         }
 
