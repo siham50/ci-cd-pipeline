@@ -40,18 +40,12 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                branch 'main'
-            }
             steps {
                 sh 'docker stop ${CONTAINER_NAME} || true; docker rm ${CONTAINER_NAME} || true; docker run -d --name ${CONTAINER_NAME} --network ci-cd-pipeline_app-network -e FLASK_SECRET_KEY=${FLASK_SECRET} -p 5000:5000 ${IMAGE_NAME}:latest'
             }
         }
 
         stage('Health Check') {
-            when {
-                branch 'main'
-            }
             steps {
                 sh 'sleep 5; curl -f http://flask-api-prod:5000/health || exit 1; echo "Deployment successful!"'
             }
