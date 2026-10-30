@@ -8,18 +8,24 @@ A complete CI/CD pipeline that automatically lints, tests, builds, and deploys a
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│ Docker Host (Local / EC2)                                   │
+│ Docker Host (Local)                                   │
 │                                                             │
 │ Developer                                                   │
 │     │                                                       │
 │     │ git push                                              │
 │     ▼                                                       │
-│ ┌─────────┐      webhook       ┌───────────┐                │
-│ │  Gitea  │ ─────────────────► │  Jenkins  │                │
-│ │  :3000  │                    │   :8090   │                │
-│ └─────────┘                    └─────┬─────┘                │
+│ ┌─────────┐      webhook       ┌─────────────────────────┐  │
+│ │  Gitea  │ ─────────────────► │  Jenkins                │  │
+│ │  :3000  │                    │   :8090                 │  │
+│ └─────────┘                    │                         │  │
+│                                │  1. Lint    (flake8)    │  │
+│                                │  2. Test    (pytest)    │  │
+│                                │  3. Build   (Docker)    │  │
+│                                │  4. Deploy              │  │
+│                                │  5. Health Check        │  │
+│                                └───────────┬─────────────┘  │
 │                                      │                      │
-│                                lint → test → build          │
+│                                docker run                   │
 │                                      │                      │
 │                                      ▼                      │
 │                                ┌───────────────┐            │
