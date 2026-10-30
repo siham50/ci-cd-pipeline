@@ -8,7 +8,7 @@ A complete CI/CD pipeline that automatically lints, tests, builds, and deploys a
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│ Docker Host (Local)                                   │
+│ Docker Host (Local)                                         │
 │                                                             │
 │ Developer                                                   │
 │     │                                                       │
